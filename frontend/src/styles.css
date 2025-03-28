@@ -1,0 +1,66 @@
+/* Reset some default styles */
+body, h1, h2, h3, h4, h5, h6, p, button, input {
+    margin: 0;
+    padding: 0;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Center the content on the homepage */
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Navbar styles */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background: white;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar a {
+    text-decoration: none;
+    color: black;
+    font-weight: bold;
+    margin: 0 15px;
+}
+
+.navbar a:hover {
+    color: gray;
+}
+
+/* Buttons */
+.button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s ease-in-out;
+}
+
+.button-primary {
+    background: green;
+    color: white;
+}
+
+.button-primary:hover {
+    background: darkgreen;
+}
+
+.button-secondary {
+    border: 2px solid gray;
+    color: black;
+}
+
+.button-secondary:hover {
+    background: lightgray;
+}
