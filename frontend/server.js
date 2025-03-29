@@ -2,28 +2,60 @@ const express = require('express');
 const app = express();
 const path = require('path');
 const expressLayouts = require('express-ejs-layouts');
+const cors = require('cors');
+const { createProxyMiddleware } = require('http-proxy-middleware');
 
-app.use(expressLayouts);
-
-app.set('view engine', 'ejs');
+// Setup view engine and layouts
 app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
+app.use(expressLayouts);
+app.set('layout', 'layouts/layout');
 
-const authRoutes = require('./routes/auth');
-app.set('layout', 'layouts/boilerplate.ejs');
-app.use('/auth', authRoutes);
+// Remove layout from res.locals
+app.use((req, res, next) => {
+    res.locals = {
+        ...res.locals,
+        title: 'Ecoloop'
+    };
+    next();
+});
+
+app.set('layout extractScripts', true);
+app.set('layout extractStyles', true);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(cors({ 
+    origin: ['http://localhost:5000', 'http://localhost:3000'],
+    credentials: true,
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+app.use('/api', createProxyMiddleware({
+    target: 'http://localhost:5000',
+    changeOrigin: true,
+    pathRewrite: {
+        '^/api': ''
+    }
+}));
 
 app.get('/dashboard', (req, res) => {
-    const user = null; // Mock user object for testing
-    res.render('dashboard', { user });
+    res.render('dashboard', { title: 'Dashboard' });
 });
+
 app.get('/recycling', (req, res) => {
-    const user = null; // Mock user object for testing
-    res.render('recycling', { user });
+    res.render('recycling');
+});
+
+app.get('/socialbuzz', (req, res) => {
+    res.render('socialbuzz');
 });
 
 app.get('/', (req, res) => {
-    const user = null; // Mock user object for testing
-    res.render('home', { user });
+    res.render('home');
 });
 
 const PORT = process.env.PORT || 3000;

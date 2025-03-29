@@ -1,19 +1,21 @@
+const Listing = require('./models/Listing'); // Ensure Listing model is imported
+
 function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated()) {
+    if (req.session && req.session.user) {
         return next();
     }
     req.flash('error', 'You must be logged in to do that');
-    return res.redirect('/login');
+    return res.redirect('/auth/login');
 }
 
 function isOwner(req, res, next) {
     const listingId = req.params.id;
-    const userId = req.user._id;
+    const userId = req.session.user._id; // Use session user ID
 
-    // Assuming Listing is the model for listings
     Listing.findById(listingId).then(listing => {
         if (!listing) {
-            return res.status(404).send("Listing not found");
+            req.flash('error', 'Listing not found');
+            return res.redirect('/listings');
         }
         if (!listing.owner.equals(userId)) {
             req.flash('error', 'You do not have permission to edit or delete this listing.');
@@ -27,8 +29,13 @@ function isOwner(req, res, next) {
 }
 
 function logout(req, res) {
-    req.logout();
-    res.end(); // End the response without redirection
+    req.session.destroy(err => {
+        if (err) {
+            console.error("Error destroying session:", err);
+            return res.status(500).send("Error logging out");
+        }
+        res.redirect('/auth/login');
+    });
 }
 
 module.exports = { isLoggedIn, isOwner, logout };

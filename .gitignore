@@ -1,3 +1,10 @@
 node_modules
 .env
 package-lock.json
+__pychche__
+.gitignore
+backend/instance/authdb.sqlite3
+backend/instance/users.db
+backend/models/__pycache__/model.cpython-312.pyc
+backend/__pycache__/app.cpython-312.pyc
+frontend/package.json

@@ -1,95 +1,58 @@
-from flask import Flask, request, jsonify, session
+from flask import Flask, request, jsonify
 from flask_cors import CORS
-from flask_pymongo import PyMongo
-from werkzeug.security import generate_password_hash, check_password_hash
-import secrets
 import os
 from models.model import classify_waste
 
 app = Flask(__name__)
 
-CORS(app, supports_credentials=True, origins="http://localhost:3000") 
+CORS(app, 
+     resources={r"/*": {"origins": ["http://localhost:3000"], "allow_headers": ["Content-Type"]}},
+     supports_credentials=True)
 UPLOAD_FOLDER = "uploads"
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-app.config["MONGO_URI"] = "mongodb://localhost:27017/authdb"
-app.config["SESSION_TYPE"] = "filesystem"
-app.secret_key = secrets.token_hex(16) 
-mongo = PyMongo(app)
- 
-@app.route("/", methods=["GET"])
-def index():
-    if "username" in session:
-        return jsonify({"message": f"Hello, {session['username']}!", "status": "logged_in"}), 200
-    return jsonify({"message": "Not logged in", "status": "logged_out"}), 200
-
-@app.route("/register", methods=["POST"])
-def register():
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Invalid request format"}), 400
-
-    username = data.get("username")
-    password = data.get("password")
-
-    if not username or not password:
-        return jsonify({"error": "Username and password are required"}), 400
-
-    if mongo.db.users.find_one({"username": username}):
-        return jsonify({"error": "Username already exists"}), 409
-
-    password_hash = generate_password_hash(password)
-    mongo.db.users.insert_one({"username": username, "password_hash": password_hash})
-
-    return jsonify({"message": "Registration successful"}), 201
-
-@app.route("/login", methods=["POST"])
-def login():
-    data = request.get_json()
-
-    if not data:
-        return jsonify({"error": "Invalid request format"}), 400
-
-    username = data.get("username")
-    password = data.get("password")
-
-    if not username or not password:
-        return jsonify({"error": "Username and password required"}), 400
-
-    user = mongo.db.users.find_one({"username": username})
-
-    if user and check_password_hash(user["password_hash"], password):
-        session["username"] = username
-        return jsonify({"message": "Login successful", "username": username}), 200
-
-    return jsonify({"error": "Invalid username or password"}), 401
-
-@app.route("/logout", methods=["POST"])
-def logout():
-    if "username" in session:
-        session.pop("username", None)
-        return jsonify({"message": "Logged out successfully"}), 200
-    return jsonify({"error": "User not logged in"}), 400
-
-@app.route("/home", methods=["GET"])
-def home():
-    if "username" not in session:
-        return jsonify({"error": "Unauthorized"}), 401
-    return jsonify({"username": session["username"]})
 
 @app.route("/dashboard", methods=["POST"])
 def dashboard():
     if 'image' not in request.files:
         return jsonify({"error": "No image part"}), 400
+    
     file = request.files['image']
     if file.filename == '':
         return jsonify({"error": "No selected image"}), 400
+
+    # Check if the file has an allowed extension
+    allowed_extensions = {'png', 'jpg', 'jpeg', 'gif'}
+    if not '.' in file.filename or \
+       file.filename.rsplit('.', 1)[1].lower() not in allowed_extensions:
+        return jsonify({"error": "Invalid file type. Please upload an image."}), 400
+
     if file:
         try:
-            image_data = file.read()
-            predicted_class = classify_waste(image_data)
-            return jsonify({"Message": predicted_class}), 200
+            import uuid
+            unique_filename = str(uuid.uuid4()) + os.path.splitext(file.filename)[1]
+            filepath = os.path.join(UPLOAD_FOLDER, unique_filename)
+            
+            file.save(filepath)
+            print(f"Image saved to: {filepath}")
+
+            try:
+                predicted_class = classify_waste(filepath)
+                print(f"Classification result: {predicted_class}")
+                
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                
+                response = jsonify({"Message": predicted_class})
+                response.headers.add('Access-Control-Allow-Origin', 'http://localhost:3000')
+                return response, 200
+            
+            except Exception as e:
+                if os.path.exists(filepath):
+                    os.remove(filepath)
+                raise e
+
         except Exception as e:
+            print(f"Error processing image: {e}")
             return jsonify({"error": f"Error processing image: {str(e)}"}), 500
 
 if __name__ == "__main__":
