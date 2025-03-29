@@ -1,0 +1,42 @@
+/* Navbar Styles */
+/* Footer Styles */
+footer {
+    background-color: #f8f9fa; /* Light background */
+    padding: 20px; /* Padding around the footer */
+    text-align: center; /* Centered text */
+}
+
+.f-info {
+    margin: 0; /* Remove margin */
+}
+
+.f-info-socials a {
+    margin: 0 10px; /* Spacing between social icons */
+    color: #000; /* Default color for icons */
+}
+
+.f-info-brand {
+    margin-top: 10px; /* Spacing above brand text */
+}
+
+.f-info-links a {
+    margin: 0 10px; /* Spacing between links */
+    color: #007bff; /* Link color */
+}
+
+.navbar {
+    background-color: #ffffff; /* White background */
+}
+
+.nav-link {
+    color: #000000; /* Black text color */
+}
+
+.nav-link:hover {
+    color: #fe424d; /* Change color on hover */
+}
+
+.btn-serach {
+    background-color: #fe424d; /* Button background color */
+    color: #fff; /* Button text color */
+}
