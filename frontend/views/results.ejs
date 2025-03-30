@@ -1,0 +1,89 @@
+<%- layout('layouts/layout') %>
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <% if (messages && messages.error && messages.error.length > 0) { %>
+                <div class="alert alert-danger">
+                    <%= messages.error %>
+                </div>
+            <% } %>
+            <% if (messages && messages.success && messages.success.length > 0) { %>
+                <div class="alert alert-success">
+                    <%= messages.success %>
+                </div>
+            <% } %>
+            
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="text-center mb-4">
+                        <i class="bi bi-recycle text-success me-2"></i>
+                        Waste Analysis Results
+                    </h2>
+                    
+                    <% if (typeof geminiMessage === 'string' && geminiMessage) { %>
+                        <% 
+                            const messageLines = geminiMessage.split('\n').map(line => line.trim()).filter(line => line);
+                            const categoryLine = messageLines.find(line => line.toLowerCase().includes('category:'));
+                            const instructionLines = messageLines.filter(line => 
+                                !line.toLowerCase().includes('category:') &&
+                                (line.toLowerCase().includes('recycling instructions:') || 
+                                line.startsWith('-') || 
+                                line.startsWith('•'))
+                            );
+                        %>
+
+                        <div class="result-section mb-4">
+                            <h4 class="text-success">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                Classification Result
+                            </h4>
+                            <div class="alert alert-success">
+                                <strong><%= categoryLine || 'Category not specified' %></strong>
+                            </div>
+                        </div>
+
+                        <div class="result-section">
+                            <h4 class="text-info">
+                                <i class="bi bi-info-circle-fill me-2"></i>
+                                Recycling Instructions
+                            </h4>
+                            <div class="alert alert-info">
+                                <% if (instructionLines.length > 0) { %>
+                                    <% instructionLines.forEach(line => { %>
+                                        <p class="mb-2"><%= line %></p>
+                                    <% }); %>
+                                <% } else { %>
+                                    <p>No specific recycling instructions available.</p>
+                                <% } %>
+                            </div>
+                        </div>
+
+                    <% } else { %>
+                        <div class="alert alert-warning">
+                            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                            No analysis results available. Please try uploading an image again.
+                        </div>
+                    <% } %>
+
+                    <div class="text-center mt-4">
+                        <a href="/dashboard" class="btn btn-primary">
+                            <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+                        </a>
+                        <button onclick="window.print()" class="btn btn-secondary ms-2">
+                            <i class="bi bi-printer me-2"></i>Print Results
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    @media print {
+        .btn { display: none; }
+        .card { box-shadow: none !important; }
+        .alert { border: 1px solid #ddd !important; }
+    }
+</style>

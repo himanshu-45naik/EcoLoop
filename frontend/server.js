@@ -5,6 +5,11 @@ const expressLayouts = require('express-ejs-layouts');
 const cors = require('cors');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 
+// Require it here, at the top of the file
+const cityWasteManagementRanking = require('/home/himanshu/Coding/ecoloop/frontend/init/data.js');
+
+const ecoResourcesRoutes = require('./routes/eco_resources');
+
 // Setup view engine and layouts
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -55,9 +60,9 @@ app.get('/socialbuzz', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.render('home');
+    console.log("cityWasteManagementRanking:", cityWasteManagementRanking); // Check the data
+    res.render('home', { cityWasteManagementRanking: cityWasteManagementRanking });
 });
-
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
